@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  *
@@ -20,57 +21,80 @@ public class JobSchedular {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    static Scanner src = new Scanner(System.in);
 
-        fcfs();
+    public static void main(String[] args) {
+        int choice;
+        do {
+            System.out.println("Select Algorithm to be implemented:");
+            System.out.println("1. First Come First Serve");
+            System.out.println("2. Shortest Job First");
+            System.out.println("3. Round Robin");
+            System.out.println("Any other key to exit");
+            try {
+                choice = src.nextInt();
+            } catch (Exception ex) {
+                break;
+            }
+            switch (choice) {
+                case 1:
+                    fcfs();
+                    break;
+                case 2:
+                    sjf();
+                    break;
+                case 3:
+                    roundRobin();
+                    break;
+
+            }
+        } while (choice >= 1 && choice <= 3);
     }
 
     private static void roundRobin() {
+        int quantum;
         List<RoundRobinProcess> threadList
-                = new ArrayList<RoundRobinProcess>();
-
+                = new ArrayList<>();
+        System.out.println("Enter quantum time:");
+        quantum = src.nextInt();
         RoundRobinProcess rrp = new RoundRobinProcess(new TaskRunner() {
-            @Override
             public void runTask() {
-                Task t = new Task(1, 10);
-                t.cpuAndIoBound(10, 20);
+                Task t = new CpuIoBoundTask(1, 10, 10, 20);
+                t.operation();
             }
         });
         threadList.add(rrp);
 
         rrp = new RoundRobinProcess(new TaskRunner() {
-            @Override
             public void runTask() {
-                Task t = new Task(2, 10);
-                t.ioBound("/resources/data.txt");
+                Task t = new IoBoundTask(2, 10, "/resources/data.txt");
+                t.operation();
             }
         });
         threadList.add(rrp);
 
         rrp = new RoundRobinProcess(new TaskRunner() {
-            @Override
             public void runTask() {
-                Task t = new Task(3, 20);
-                t.cpuBound(100);
+                Task t = new CpuBoundTask(3, 20, 100);
+                t.operation();
             }
         });
         threadList.add(rrp);
 
-        for (RoundRobinProcess rrp1 : threadList) {
+        threadList.stream().forEach((rrp1) -> {
             new Thread(rrp1).start();
-        }
-
+        });
     }
 
     private static void fcfs() {
 
         int index = 1;
-        ArrayList<Task> tasks = new ArrayList<Task>(); // storage for the tasks
+        ArrayList<Task> tasks = new ArrayList<>(); // storage for the tasks
         Random r = new Random();
         while (index < 7) // read CPU burst times of tasks 
         {
             int burst = r.nextInt(100);
-            tasks.add(new Task(index, burst));  // add a new task to the array
+            tasks.add(new CpuBoundTask(index, burst, 0));  // add a new task to the array
             index++;
         }
         int numTasks = tasks.size();          // total # of tasks
@@ -80,7 +104,7 @@ public class JobSchedular {
         System.out.print("0");
         while (!tasks.isEmpty()) // take the tasks in the natural order
         {                                     // and throw them into the schedule
-            
+
             Task t = tasks.remove(0);
             t.cpuAndIoBound(time, time);
             if (!tasks.isEmpty()) {
@@ -96,12 +120,12 @@ public class JobSchedular {
 
     private static void sjf() {
         int index = 1;
-        ArrayList<Task> tasks = new ArrayList<Task>(); // storage for tasks
+        ArrayList<Task> tasks = new ArrayList<>(); // storage for tasks
         Random r = new Random();
         while (index < 7) // read CPU burst times of tasks 
         {
             int burst = r.nextInt(100);         // create a new task
-            tasks.add(new Task(index, burst));   // and add it to an array
+            tasks.add(new CpuBoundTask(index, burst, 0));   // and add it to an array
             index++;
         }
         int numTasks = tasks.size();           // total number of tasks
