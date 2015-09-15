@@ -11,6 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -59,7 +61,7 @@ public class JobSchedular {
         quantum = src.nextInt();
         RoundRobinProcess rrp = new RoundRobinProcess(new TaskRunner() {
             public void runTask() {
-                Task t = new CpuIoBoundTask(1, 10, 10, 20);
+                Task t = new CpuIoBoundTask(1, 100);
                 t.operation();
             }
         });
@@ -67,7 +69,7 @@ public class JobSchedular {
 
         rrp = new RoundRobinProcess(new TaskRunner() {
             public void runTask() {
-                Task t = new IoBoundTask(2, 10, "/resources/data.txt");
+                Task t = new CpuIoBoundTask(2, 200);
                 t.operation();
             }
         });
@@ -75,15 +77,32 @@ public class JobSchedular {
 
         rrp = new RoundRobinProcess(new TaskRunner() {
             public void runTask() {
-                Task t = new CpuBoundTask(3, 20, 100);
+                Task t = new CpuIoBoundTask(3, 210);
                 t.operation();
             }
         });
+
         threadList.add(rrp);
 
+        //start all the threads
         threadList.stream().forEach((rrp1) -> {
-            new Thread(rrp1).start();
+            Thread t = new Thread(rrp1);
+            t.start();
         });
+        
+        //round robin
+        while (true) {
+            threadList.stream().forEach((rrp1) -> {
+                Thread t = new Thread(rrp1);
+                t.start();
+                try {
+                    t.sleep(quantum);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(JobSchedular.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                rrp1.suspend();
+            });
+        }
     }
 
     private static void fcfs() {
@@ -106,7 +125,7 @@ public class JobSchedular {
         {                                     // and throw them into the schedule
 
             Task t = tasks.remove(0);
-            t.cpuAndIoBound(time, time);
+            t.operation();
             if (!tasks.isEmpty()) {
                 waitingTime += waitingTime + t.burst;
             }

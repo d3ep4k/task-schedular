@@ -18,7 +18,7 @@ public class IoBoundTask extends Task {
     void operation() {
         try (Scanner sc = new Scanner(Task.class.getResourceAsStream(filePath))) {
             while (sc.hasNextLine()) {
-                String i = sc.next();
+                String i = sc.nextLine();
                 System.out.println(i);
             }
         }

@@ -5,13 +5,11 @@
  */
 package jobschedular;
 
-import java.util.Scanner;
-
 /**
  *
  * @author deepak
  */
-public class Task {
+public abstract class Task {
   public int index;                   // task index (ID)
     public int burst;                   // task burst time
 
